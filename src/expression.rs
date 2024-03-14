@@ -106,7 +106,7 @@ impl Expression {
             }
             .eval(),
             Self::BindingUsage(binding_usage) => binding_usage.eval(env),
-            Self::Block(block) => block.eval(),
+            Self::Block(block) => block.eval(env),
         }
     }
 }
@@ -116,6 +116,7 @@ mod tests {
     use super::*;
     use crate::binding_usage::BindingUsage;
     use crate::env::Env;
+    use crate::statement::Statement;
     use crate::value::Value;
 
     #[test]

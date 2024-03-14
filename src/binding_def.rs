@@ -1,6 +1,7 @@
 use crate::env::Env;
 use crate::expression::Expression;
 use crate::utils;
+use crate::value::Value;
 
 #[derive(Debug, PartialEq)]
 pub enum Identifier {
@@ -35,9 +36,9 @@ impl BindingDef {
         ))
     }
 
-    pub(crate) fn eval(&self, env: &mut Env) -> Result<(), String> {
+    pub(crate) fn eval(&self, env: &mut Env) -> Result<Value, String> {
         env.store_binding(self.name.clone(), self.val.eval(env)?);
-        Ok(())
+        Ok(Value::Unit)
     }
 }
 

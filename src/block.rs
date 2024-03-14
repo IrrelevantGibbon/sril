@@ -1,4 +1,4 @@
-use crate::{statement::Statement, utils, value::Value};
+use crate::{env::Env, statement::Statement, utils, value::Value};
 
 #[derive(Debug, PartialEq)]
 pub struct Block {
@@ -27,8 +27,20 @@ impl Block {
         Ok((s, Self { statements }))
     }
 
-    pub(crate) fn eval(&self) -> Result<Value, String> {
-        Ok(Value::Number(10))
+    pub(crate) fn eval(&self, env: &Env) -> Result<Value, String> {
+        if self.statements.is_empty() {
+            return Ok(Value::Unit);
+        }
+
+        let mut env = Env::default();
+
+        let statements_except_last = &self.statements[..self.statements.len() - 1];
+
+        for statement in statements_except_last {
+            statement.eval(&mut env)?;
+        }
+
+        self.statements.last().unwrap().eval(&mut env)
     }
 }
 
@@ -120,6 +132,47 @@ mod tests {
             })
             .eval(&Env::default()),
             Ok(Value::Number(10)),
+        );
+    }
+
+    #[test]
+    fn eval_empty_block() {
+        assert_eq!(
+            Block {
+                statements: Vec::new()
+            }
+            .eval(&Env::default()),
+            Ok(Value::Unit),
+        );
+    }
+
+    #[test]
+    fn eval_block_with_one_expr() {
+        assert_eq!(
+            Block {
+                statements: vec![Statement::Expression(Expression::Number(Number(25)))],
+            }
+            .eval(&Env::default()),
+            Ok(Value::Number(25)),
+        );
+    }
+
+    #[test]
+    fn eval_block_with_binding_def_and_usage() {
+        assert_eq!(
+            Block {
+                statements: vec![
+                    Statement::BindingDef(BindingDef {
+                        name: "one".to_string(),
+                        val: Expression::Number(Number(1)),
+                    }),
+                    Statement::Expression(Expression::BindingUsage(BindingUsage {
+                        name: "one".to_string(),
+                    })),
+                ],
+            }
+            .eval(&Env::default()),
+            Ok(Value::Number(1)),
         );
     }
 }

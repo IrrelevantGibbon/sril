@@ -1,5 +1,7 @@
 use crate::binding_def::BindingDef;
+use crate::env::Env;
 use crate::expression::Expression;
+use crate::value::Value;
 
 #[derive(Debug, PartialEq)]
 pub enum Statement {
@@ -14,6 +16,16 @@ impl Statement {
             .or_else(|_| {
                 Expression::new(s).map(|(s, expression)| (s, Self::Expression(expression)))
             })
+    }
+
+    pub(crate) fn eval(&self, env: &mut Env) -> Result<Value, String> {
+        match self {
+            Statement::BindingDef(binding_def) => {
+                binding_def.eval(env)?;
+                Ok(Value::Unit)
+            }
+            Statement::Expression(expression) => expression.eval(&env),
+        }
     }
 }
 
